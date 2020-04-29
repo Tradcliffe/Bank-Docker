@@ -7,3 +7,8 @@ README's are in
 Bank-Load
 Bank-Project
 Bank-NewRelic
+
+From Bank-Docker
+cd Bank-Tomcat; docker-compose build
+cd ..; docker-compose build
+docker-compose up
