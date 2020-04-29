@@ -1,0 +1,155 @@
+version: '3'
+
+volumes:
+  project:
+    external: true
+  monitoring:
+    external: true
+
+services:
+  project:
+    container_name: project
+    build:
+      context: Bank-Project
+    image: tchung02/bank-project
+    volumes:
+    - project:/project
+
+  bankdb:
+    container_name: bankdb
+    hostname: bankdb
+    image: mysql:5.7
+    logging:
+      driver: "none"
+    environment:
+    - "MYSQL_ROOT_PASSWORD=welcome1"
+    ports:
+    - "3306:3306"
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3.5.4-management
+    logging:
+      driver: "none"
+    environment:
+    - "RABBITMQ_DEFAULT_USER=guest"
+    - "RABBITMQ_DEFAULT_PASS=guest"
+    ports:
+    - "5672:5672"
+
+  rest:
+    container_name: rest
+    hostname: rest
+    build:
+      context: ./Bank-Tomcat
+    image: tchung02/bank-tomcat
+    volumes:
+    - project:/project
+    - monitoring:/monitoring
+    logging:
+      driver: "none"
+    env_file: ./docker-compose.env
+    environment:
+    - "ROLE=rest"
+    - "NEW_RELIC_APP_NAME=Authentication-Service"
+    depends_on:
+    - "bankdb"
+    - "rabbitmq"
+    ports:
+    - "8081:8080"
+
+  portal:
+    container_name: portal
+    hostname: portal
+    build:
+      context: ./Bank-Tomcat
+    image: tchung02/bank-tomcat
+    volumes:
+    - project:/project
+    - monitoring:/monitoring
+    logging:
+      driver: "none"
+    env_file: ./docker-compose.env
+    environment:
+    - "ROLE=portal"
+    - "NEW_RELIC_APP_NAME=Portal-Service"
+    depends_on:
+    - "bankdb"
+    - "rabbitmq"
+    ports:
+    - "8082:8080"
+
+  verification:
+    container_name: verification
+    hostname: verification
+    build:
+      context: ./Bank-Tomcat
+    image: tchung02/bank-tomcat
+    volumes:
+    - project:/project
+    - monitoring:/monitoring
+    logging:
+      driver: "none"
+    env_file: ./docker-compose.env
+    environment:
+    - "ROLE=verification"
+    - "NEW_RELIC_APP_NAME=Verification-Service"
+    depends_on:
+    - "bankdb"
+    - "rabbitmq"
+    ports:
+    - "8083:8080"
+
+  processor:
+    container_name: processor
+    hostname: processor
+    build:
+      context: ./Bank-Tomcat
+    image: tchung02/bank-tomcat
+    volumes:
+    - project:/project
+    - monitoring:/monitoring
+    logging:
+      driver: "none"
+    env_file: ./docker-compose.env
+    environment:
+    - "ROLE=processor"
+    - "NEW_RELIC_APP_NAME=LoanProcessor-Service"
+    depends_on:
+    - "bankdb"
+    - "rabbitmq"
+    ports:
+    - "8084:8080"
+
+  approval:
+    container_name: approval
+    hostname: approval
+    build:
+      context: ./Bank-Tomcat
+    image: tchung02/bank-tomcat
+    volumes:
+    - project:/project
+    - monitoring:/monitoring
+    logging:
+      driver: "none"
+    env_file: ./docker-compose.env
+    environment:
+    - "ROLE=approval"
+    - "NEW_RELIC_APP_NAME=Approval-Service"
+    depends_on:
+    - "bankdb"
+    - "rabbitmq"
+    ports:
+    - "8085:8080"
+
+  load:
+    container_name: bankload
+    hostname: bankload
+    build:
+      context: ./Bank-Load
+    image: tchung02/bank-load
+    env_file: ./docker-compose.env
+    depends_on:
+    - "portal"
+    - "processor"

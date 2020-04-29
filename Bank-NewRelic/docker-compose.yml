@@ -1,0 +1,19 @@
+version: '3'
+
+volumes:
+  monitoring:
+    external: true
+
+services:
+  project:
+    build:
+      context: .
+      args:
+        APPD_AGENT_ZIP: newrelic-java.zip
+        APPD_AGENT_SHA256:
+    container_name: monitoring
+    image: tchung02/bank-agents
+    environment:
+        APPD_DIR: "/monitoring"
+    volumes:
+    - monitoring:/monitoring

@@ -1,0 +1,31 @@
+version: '3'
+
+volumes:
+  appdynamics:
+    external: true
+  project:
+    external: true
+
+services:
+  monitor:
+    container_name: monitor
+    hostname: monitor
+    build:
+      context: .
+      args:
+        MACHINE_AGENT_ZIP:
+        MACHINE_AGENT_SHA256:
+    image: appdynamics/appdynamics-monitor
+    environment:
+      APPD_DOCKER_VISIBILITY: "true"
+      APPD_ANALYTICS_MONITOR: "true"
+    env_file: ../docker-compose.env
+    volumes:
+      - project:/project
+      - /:/hostroot:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  default:
+    external:
+      name: adcapitaldocker_default
